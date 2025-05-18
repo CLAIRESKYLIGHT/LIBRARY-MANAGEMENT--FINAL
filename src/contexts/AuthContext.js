@@ -1,71 +1,72 @@
 "use client";
 import { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import api from "@/lib/api";
 
 const AuthContext = createContext();
 
-export const AuthProvider = ({ children }) => {
+export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    // Check for token in localStorage on mount
-    const storedToken = localStorage.getItem("token");
-    if (storedToken) {
-      setToken(storedToken);
-      // You might want to validate the token here
-      // and fetch user data if needed
+    // Check if user is logged in
+    const token = localStorage.getItem("token");
+    if (token) {
+      // Here you would typically validate the token with your backend
+      // For now, we'll just set a mock user
+      setUser({
+        id: 1,
+        name: "John Doe",
+        email: "john@example.com",
+        role: "admin"
+      });
     }
     setLoading(false);
   }, []);
 
   const login = async (email, password) => {
     try {
-      const response = await api.post("/auth/login", { email, password });
-      const { token, user } = response.data;
-      localStorage.setItem("token", token);
-      setToken(token);
-      setUser(user);
-      router.push("/dashboard");
+      // Here you would typically make an API call to your backend
+      // For now, we'll just simulate a successful login
+      const mockToken = "mock-jwt-token";
+      localStorage.setItem("token", mockToken);
+      setUser({
+        id: 1,
+        name: "John Doe",
+        email: email,
+        role: "admin"
+      });
+      router.push("/books");
     } catch (error) {
-      throw error;
-    }
-  };
-
-  const register = async (name, email, password) => {
-    try {
-      const response = await api.post("/auth/register", { name, email, password });
-      const { token, user } = response.data;
-      localStorage.setItem("token", token);
-      setToken(token);
-      setUser(user);
-      router.push("/dashboard");
-    } catch (error) {
-      throw error;
+      throw new Error("Login failed");
     }
   };
 
   const logout = () => {
     localStorage.removeItem("token");
     setUser(null);
-    setToken(null);
-    router.push("/auth/login");
+    router.push("/login");
+  };
+
+  const value = {
+    user,
+    loading,
+    login,
+    logout
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>
-      {children}
+    <AuthContext.Provider value={value}>
+      {!loading && children}
     </AuthContext.Provider>
   );
-};
+}
 
-export const useAuth = () => {
+export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
-};
+}

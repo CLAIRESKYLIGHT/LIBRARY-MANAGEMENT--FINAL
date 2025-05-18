@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
-import { dashboardApi } from '../src/lib/api';
+import { dashboardApi } from '../../src/lib/api';
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
